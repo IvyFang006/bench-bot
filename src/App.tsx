@@ -1,22 +1,25 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PdfViewer } from "@/components/PdfViewer";
+import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 import { submitRegistration } from "@/lib/submit";
+
+const CONSENT_PDF_URL = `${import.meta.env.BASE_URL}consent-form.pdf`;
 
 interface FormData {
   name: string;
   birthday: string;
   isFirstTime: boolean;
-  consentFile: File | null;
 }
 
 interface FormErrors {
   name?: string;
   birthday?: string;
-  consentFile?: string;
+  signature?: string;
 }
 
 function App() {
@@ -24,12 +27,12 @@ function App() {
     name: "",
     birthday: "",
     isFirstTime: false,
-    consentFile: null,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle");
+  const signaturePadRef = useRef<SignaturePadHandle>(null);
 
   function validate(): FormErrors {
     const newErrors: FormErrors = {};
@@ -39,18 +42,8 @@ function App() {
     if (!formData.birthday) {
       newErrors.birthday = "請選擇出生年月日";
     }
-    if (!formData.consentFile) {
-      newErrors.consentFile = "請上傳個資同意書";
-    } else {
-      const allowed = [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ];
-      if (!allowed.includes(formData.consentFile.type)) {
-        newErrors.consentFile = "僅接受 PDF 或圖片檔（JPG、PNG、WEBP）";
-      }
+    if (signaturePadRef.current?.isEmpty()) {
+      newErrors.signature = "請簽名";
     }
     return newErrors;
   }
@@ -64,11 +57,14 @@ function App() {
 
     setSubmitStatus("submitting");
 
+    const signatureDataUrl = signaturePadRef.current!.toDataURL();
+
     submitRegistration(
       formData.name,
       formData.birthday,
       formData.isFirstTime,
-      formData.consentFile!
+      signatureDataUrl,
+      CONSENT_PDF_URL
     )
       .then((res) => {
         setSubmitStatus(res.success ? "success" : "error");
@@ -164,30 +160,23 @@ function App() {
           {/* Divider */}
           <div className="border-t" />
 
-          {/* 個資同意書上傳 */}
+          {/* 個資同意書 */}
+          <div className="space-y-4">
+            <Label className="text-base">個人資料告知事項暨同意書</Label>
+            <PdfViewer url={CONSENT_PDF_URL} />
+          </div>
+
+          {/* 簽名 */}
           <div className="space-y-2">
-            <Label htmlFor="consentFile" className="text-base">
-              個資同意書
-            </Label>
-            <div className="relative">
-              <Input
-                id="consentFile"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                className="h-12 text-base file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer cursor-pointer"
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    consentFile: e.target.files?.[0] ?? null,
-                  }))
-                }
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              接受 PDF、JPG、PNG、WEBP 格式
-            </p>
-            {errors.consentFile && (
-              <p className="text-sm text-destructive">{errors.consentFile}</p>
+            <Label className="text-base">簽名</Label>
+            <SignaturePad
+              ref={signaturePadRef}
+              onChange={() =>
+                setErrors((prev) => ({ ...prev, signature: undefined }))
+              }
+            />
+            {errors.signature && (
+              <p className="text-sm text-destructive">{errors.signature}</p>
             )}
           </div>
 
