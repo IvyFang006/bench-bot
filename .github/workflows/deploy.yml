@@ -28,9 +28,9 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          VITE_APPS_SCRIPT_URL: ${{ vars.VITE_APPS_SCRIPT_URL }}
-          VITE_RECAPTCHA_SITE_KEY: ${{ vars.VITE_RECAPTCHA_SITE_KEY }}
-          VITE_SCHOOL_NAME: ${{ vars.VITE_SCHOOL_NAME }}
+          VITE_APPS_SCRIPT_URL: ${{ secrets.VITE_APPS_SCRIPT_URL }}
+          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          VITE_SCHOOL_NAME: ${{ secrets.VITE_SCHOOL_NAME }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
