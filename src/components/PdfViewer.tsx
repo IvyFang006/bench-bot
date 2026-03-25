@@ -47,7 +47,7 @@ export function PdfViewer({ url }: PdfViewerProps) {
 
           container!.appendChild(canvas);
 
-          await page.render({ canvasContext: context, viewport }).promise;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
         }
       } catch {
         if (!cancelled) setError("無法載入 PDF");
