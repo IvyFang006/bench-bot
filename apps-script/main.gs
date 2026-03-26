@@ -21,6 +21,8 @@ function doPost(e) {
     var props = PropertiesService.getScriptProperties();
     var sheetId = props.getProperty("SHEET_ID");
     var folderId = props.getProperty("FOLDER_ID");
+    var photoFolderId = props.getProperty("PHOTO_FOLDER_ID");
+    var diplomaFolderId = props.getProperty("DIPLOMA_FOLDER_ID");
 
     if (!sheetId || !folderId) {
       return jsonResponse(false, "系統尚未初始化，請聯繫管理員");
@@ -28,25 +30,72 @@ function doPost(e) {
 
     var sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
     var now = new Date();
-    sheet.appendRow([
+    var rowData = [
       body.name,
       body.birthday,
+      body.ig || "",
       body.isFirstTime ? "初次參賽者" : "",
+      body.isGraduating ? "應屆畢業生" : "",
       Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss"),
-    ]);
+    ];
 
-    // Upload consent file to Google Drive
-    if (body.consentFile && body.consentFile.data) {
-      var folder = DriveApp.getFolderById(folderId);
-      var decoded = Utilities.base64Decode(body.consentFile.data);
-      var blob = Utilities.newBlob(decoded, body.consentFile.mimeType, body.consentFile.fileName);
-      folder.createFile(blob);
+    // Check for existing row with same name, overwrite if found
+    var existingRow = findExistingRow(sheet, body.name);
+    if (existingRow > 0) {
+      sheet.getRange(existingRow, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+
+    // Upload consent file to Google Drive (replace existing if found)
+    uploadFileToDrive(body.consentFile, folderId);
+
+    // Upload photo if provided (first-time participants)
+    if (body.photoFile && body.photoFile.data && photoFolderId) {
+      uploadFileToDrive(body.photoFile, photoFolderId);
+    }
+
+    // Upload diploma if provided (graduating students)
+    if (body.diplomaFile && body.diplomaFile.data && diplomaFolderId) {
+      uploadFileToDrive(body.diplomaFile, diplomaFolderId);
     }
 
     return jsonResponse(true, "報名成功");
   } catch (err) {
     return jsonResponse(false, "伺服器錯誤：" + err.message);
   }
+}
+
+/**
+ * Upload a file to a Google Drive folder, replacing any existing file with the same name.
+ */
+function uploadFileToDrive(filePayload, folderId) {
+  if (!filePayload || !filePayload.data || !folderId) return;
+
+  var folder = DriveApp.getFolderById(folderId);
+  var decoded = Utilities.base64Decode(filePayload.data);
+  var blob = Utilities.newBlob(decoded, filePayload.mimeType, filePayload.fileName);
+
+  // Delete old file with same name
+  var existingFiles = folder.getFilesByName(filePayload.fileName);
+  while (existingFiles.hasNext()) {
+    existingFiles.next().setTrashed(true);
+  }
+
+  folder.createFile(blob);
+}
+
+/**
+ * Find an existing row by name. Returns row number (1-based) or -1 if not found.
+ */
+function findExistingRow(sheet, name) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) { // skip header
+    if (data[i][0] === name) {
+      return i + 1; // 1-based row number
+    }
+  }
+  return -1;
 }
 
 /**

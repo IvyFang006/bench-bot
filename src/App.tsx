@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PdfViewer } from "@/components/PdfViewer";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
+import { FileUpload } from "@/components/FileUpload";
 import { submitRegistration } from "@/lib/submit";
 
 const CONSENT_PDF_URL = `${import.meta.env.BASE_URL}consent-form.pdf`;
@@ -13,25 +14,32 @@ const CONSENT_PDF_URL = `${import.meta.env.BASE_URL}consent-form.pdf`;
 interface FormData {
   name: string;
   birthday: string;
+  ig: string;
   isFirstTime: boolean;
+  isGraduating: boolean;
 }
 
 interface FormErrors {
   name?: string;
   birthday?: string;
   signature?: string;
+  photo?: string;
 }
 
 function App() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     birthday: "",
+    ig: "",
     isFirstTime: false,
+    isGraduating: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [diplomaFile, setDiplomaFile] = useState<File | null>(null);
   const signaturePadRef = useRef<SignaturePadHandle>(null);
 
   function validate(): FormErrors {
@@ -41,6 +49,9 @@ function App() {
     }
     if (!formData.birthday) {
       newErrors.birthday = "請選擇出生年月日";
+    }
+    if (formData.isFirstTime && !photoFile) {
+      newErrors.photo = "初次參賽者需上傳大頭貼";
     }
     if (signaturePadRef.current?.isEmpty()) {
       newErrors.signature = "請簽名";
@@ -62,9 +73,13 @@ function App() {
     submitRegistration(
       formData.name,
       formData.birthday,
+      formData.ig,
       formData.isFirstTime,
+      formData.isGraduating,
       signatureDataUrl,
-      CONSENT_PDF_URL
+      CONSENT_PDF_URL,
+      photoFile,
+      diplomaFile
     )
       .then((res) => {
         setSubmitStatus(res.success ? "success" : "error");
@@ -85,13 +100,20 @@ function App() {
           <p className="text-muted-foreground text-lg">
             感謝你的報名，我們已收到你的資料。
           </p>
+          <Button
+            size="lg"
+            className="mt-4"
+            onClick={() => window.location.reload()}
+          >
+            回到首頁
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
       <div className="w-full max-w-lg space-y-10">
         {/* Header */}
         <div className="space-y-2">
@@ -140,22 +162,79 @@ function App() {
             )}
           </div>
 
-          {/* 初次參賽者 */}
-          <div className="flex items-center space-x-3">
-            <Checkbox
-              id="isFirstTime"
-              checked={formData.isFirstTime}
-              onCheckedChange={(checked) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  isFirstTime: checked === true,
-                }))
+          {/* IG 帳號 */}
+          <div className="space-y-2">
+            <Label htmlFor="ig" className="text-base">
+              IG 帳號
+            </Label>
+            <Input
+              id="ig"
+              placeholder="@username"
+              className="h-12 text-base"
+              value={formData.ig}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, ig: e.target.value }))
               }
             />
-            <Label htmlFor="isFirstTime" className="text-base cursor-pointer">
-              初次參賽者
-            </Label>
           </div>
+
+          {/* 初次參賽者 / 應屆畢業生 */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="isFirstTime"
+                checked={formData.isFirstTime}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isFirstTime: checked === true,
+                  }))
+                }
+              />
+              <Label htmlFor="isFirstTime" className="text-base cursor-pointer">
+                初次參賽者
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="isGraduating"
+                checked={formData.isGraduating}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isGraduating: checked === true,
+                  }))
+                }
+              />
+              <Label htmlFor="isGraduating" className="text-base cursor-pointer">
+                應屆畢業生
+              </Label>
+            </div>
+          </div>
+
+          {/* Conditional uploads */}
+          {formData.isFirstTime && (
+            <FileUpload
+              label="大頭貼"
+              hint="初次參賽者請上傳大頭貼"
+              accept="image/*"
+              required
+              error={errors.photo}
+              onChange={(file) => {
+                setPhotoFile(file);
+                setErrors((prev) => ({ ...prev, photo: undefined }));
+              }}
+            />
+          )}
+
+          {formData.isGraduating && (
+            <FileUpload
+              label="畢業證書"
+              hint="如已取得畢業證書，可在此上傳"
+              accept="image/*,.pdf"
+              onChange={setDiplomaFile}
+            />
+          )}
 
           {/* Divider */}
           <div className="border-t" />
@@ -169,6 +248,9 @@ function App() {
           {/* 簽名 */}
           <div className="space-y-2">
             <Label className="text-base">簽名</Label>
+            <p className="text-sm text-muted-foreground">
+              請於簽名時一併寫上日期
+            </p>
             <SignaturePad
               ref={signaturePadRef}
               onChange={() =>
@@ -196,6 +278,18 @@ function App() {
           </Button>
         </form>
       </div>
+
+      {submitStatus === "submitting" && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-lg font-medium">正在提交報名資料...</p>
+            <p className="text-sm text-muted-foreground">
+              請勿關閉此頁面
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

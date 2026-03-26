@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string;
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
 const SCHOOL_NAME = import.meta.env.VITE_SCHOOL_NAME as string;
 
-interface ConsentFilePayload {
+interface FilePayload {
   fileName: string;
   mimeType: string;
   data: string; // base64
@@ -13,8 +13,12 @@ interface ConsentFilePayload {
 interface SubmitPayload {
   name: string;
   birthday: string;
+  ig: string;
   isFirstTime: boolean;
-  consentFile: ConsentFilePayload;
+  isGraduating: boolean;
+  consentFile: FilePayload;
+  photoFile?: FilePayload;
+  diplomaFile?: FilePayload;
   recaptchaToken: string;
 }
 
@@ -77,27 +81,55 @@ async function getRecaptchaToken(): Promise<string> {
   });
 }
 
+async function fileToBase64(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  return uint8ArrayToBase64(new Uint8Array(buffer));
+}
+
+async function buildFilePayload(
+  file: File,
+  namePrefix: string
+): Promise<FilePayload> {
+  const ext = file.name.split(".").pop() ?? "bin";
+  return {
+    fileName: `${namePrefix}.${ext}`,
+    mimeType: file.type,
+    data: await fileToBase64(file),
+  };
+}
+
 export async function submitRegistration(
   name: string,
   birthday: string,
+  ig: string,
   isFirstTime: boolean,
+  isGraduating: boolean,
   signatureDataUrl: string,
-  pdfUrl: string
+  pdfUrl: string,
+  photoFile: File | null,
+  diplomaFile: File | null
 ): Promise<SubmitResponse> {
-  const [signedPdfBytes, recaptchaToken] = await Promise.all([
-    embedSignatureInPdf(pdfUrl, signatureDataUrl),
-    getRecaptchaToken(),
-  ]);
-
-  const base64Data = uint8ArrayToBase64(signedPdfBytes);
   const sanitized =
     name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").trim() || "unnamed";
-  const fileName = `${SCHOOL_NAME}_${sanitized}.pdf`;
+  const namePrefix = `${SCHOOL_NAME}_${sanitized}`;
+
+  const [signedPdfBytes, recaptchaToken, photoPayload, diplomaPayload] =
+    await Promise.all([
+      embedSignatureInPdf(pdfUrl, signatureDataUrl),
+      getRecaptchaToken(),
+      photoFile ? buildFilePayload(photoFile, namePrefix) : null,
+      diplomaFile ? buildFilePayload(diplomaFile, namePrefix) : null,
+    ]);
+
+  const base64Data = uint8ArrayToBase64(signedPdfBytes);
+  const fileName = `${namePrefix}.pdf`;
 
   const payload: SubmitPayload = {
     name,
     birthday,
+    ig,
     isFirstTime,
+    isGraduating,
     consentFile: {
       fileName,
       mimeType: "application/pdf",
@@ -105,6 +137,9 @@ export async function submitRegistration(
     },
     recaptchaToken,
   };
+
+  if (photoPayload) payload.photoFile = photoPayload;
+  if (diplomaPayload) payload.diplomaFile = diplomaPayload;
 
   const response = await fetch(APPS_SCRIPT_URL, {
     method: "POST",
