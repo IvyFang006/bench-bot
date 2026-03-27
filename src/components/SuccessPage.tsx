@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PacMan, Ghost, Dot, Cherry } from "@/components/ArcadeIcons";
 
@@ -15,6 +16,10 @@ function generateTicketId() {
 
 export function SuccessPage({ playerName }: SuccessPageProps) {
   const ticketId = generateTicketId();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#131313] flex flex-col items-center justify-center px-4 py-12">
