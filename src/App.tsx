@@ -8,6 +8,8 @@ import { PdfViewer } from "@/components/PdfViewer";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 import { FileUpload } from "@/components/FileUpload";
 import { submitRegistration } from "@/lib/submit";
+import { SuccessPage } from "@/components/SuccessPage";
+import { PacMan, Ghost, Dot, Cherry, Basketball } from "@/components/ArcadeIcons";
 
 const CONSENT_PDF_URL = `${import.meta.env.BASE_URL}consent-form.pdf`;
 
@@ -90,176 +92,187 @@ function App() {
   }
 
   if (submitStatus === "success") {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-lg text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary text-2xl font-bold">
-            ✓
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">報名成功</h1>
-          <p className="text-muted-foreground text-lg">
-            感謝你的報名，我們已收到你的資料。
-          </p>
-          <Button
-            size="lg"
-            className="mt-4"
-            onClick={() => window.location.reload()}
-          >
-            回到首頁
-          </Button>
-        </div>
-      </div>
-    );
+    return <SuccessPage playerName={formData.name} />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
-      <div className="w-full max-w-lg space-y-10">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">2026 校友盃報名</h1>
+    <div className="min-h-screen bg-[#131313] relative">
+      {/* Pac-Man dot trail decoration */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-3">
+        <PacMan size={25} />
+        <Basketball size={20} />
+        <Basketball size={20} />
+        <Basketball size={20} />
+        <Basketball size={20} />
+        <Basketball size={20} />
+        <Basketball size={20} />
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 pt-20 pb-16">
+        {/* Hero header */}
+        <div className="mb-10">
+          <h1 className="font-pixel text-xl text-[#ffd709] leading-relaxed mb-2">
+            2026
+          </h1>
+          <h2 className="text-3xl font-bold tracking-[-0.02em] text-[#e6e8ea]">
+            全國大專女籃校友盃
+          </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* 姓名 */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-base">
-              姓名
-            </Label>
-            <Input
-              id="name"
-              placeholder="請輸入姓名"
-              className="h-12 text-base"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name}</p>
-            )}
-          </div>
-
-          {/* 出生年月日 */}
-          <div className="space-y-2">
-            <Label htmlFor="birthday" className="text-base">
-              出生年月日
-            </Label>
-            <Input
-              id="birthday"
-              type="date"
-              className="h-12 text-base"
-              value={formData.birthday}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  birthday: e.target.value,
-                }))
-              }
-            />
-            {errors.birthday && (
-              <p className="text-sm text-destructive">{errors.birthday}</p>
-            )}
-          </div>
-
-          {/* IG 帳號 */}
-          <div className="space-y-2">
-            <Label htmlFor="ig" className="text-base">
-              IG 帳號
-            </Label>
-            <Input
-              id="ig"
-              placeholder="@username"
-              className="h-12 text-base"
-              value={formData.ig}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, ig: e.target.value }))
-              }
-            />
-          </div>
-
-          {/* 初次參賽者 / 應屆畢業生 */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="isFirstTime"
-                checked={formData.isFirstTime}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isFirstTime: checked === true,
-                  }))
-                }
-              />
-              <Label htmlFor="isFirstTime" className="text-base cursor-pointer">
-                初次參賽者
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="isGraduating"
-                checked={formData.isGraduating}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isGraduating: checked === true,
-                  }))
-                }
-              />
-              <Label htmlFor="isGraduating" className="text-base cursor-pointer">
-                應屆畢業生
-              </Label>
-            </div>
-          </div>
-
-          {/* Conditional uploads */}
-          {formData.isFirstTime && (
-            <FileUpload
-              label="大頭貼"
-              hint="初次參賽者請上傳大頭貼"
-              accept="image/*"
-              required
-              error={errors.photo}
-              onChange={(file) => {
-                setPhotoFile(file);
-                setErrors((prev) => ({ ...prev, photo: undefined }));
-              }}
-            />
-          )}
-
-          {formData.isGraduating && (
-            <FileUpload
-              label="畢業證書"
-              hint="如已取得畢業證書，可在此上傳"
-              accept="image/*,.pdf"
-              onChange={setDiplomaFile}
-            />
-          )}
-
-          {/* Divider */}
-          <div className="border-t" />
-
-          {/* 個資同意書 */}
-          <div className="space-y-4">
-            <Label className="text-base">個人資料告知事項暨同意書</Label>
-            <PdfViewer url={CONSENT_PDF_URL} />
-          </div>
-
-          {/* 簽名 */}
-          <div className="space-y-2">
-            <Label className="text-base">簽名</Label>
-            <p className="text-sm text-muted-foreground">
-              請於簽名時一併寫上日期
+          {/* Section: 基本資料 - light panel */}
+          <div className="relative bg-[#ffffff] p-6 space-y-6 shadow-[0_0_20px_rgba(255,215,9,0.08)]">
+            <p className="font-pixel text-sm text-[#6c5a00] tracking-wider">
+              基本資料
             </p>
-            <SignaturePad
-              ref={signaturePadRef}
-              onChange={() =>
-                setErrors((prev) => ({ ...prev, signature: undefined }))
-              }
-            />
-            {errors.signature && (
-              <p className="text-sm text-destructive">{errors.signature}</p>
+
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-base text-[#2c2f30]">
+                姓名<span className="text-[#f95630] ml-1">*</span>
+              </Label>
+              <Input
+                id="name"
+                placeholder="請輸入姓名"
+                className="h-12 text-base"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+              {errors.name && (
+                <p className="text-sm text-[#f95630]">{errors.name}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthday" className="text-base text-[#2c2f30]">
+                生日<span className="text-[#f95630] ml-1">*</span>
+              </Label>
+              <Input
+                id="birthday"
+                type="date"
+                className="h-12 text-base"
+                value={formData.birthday}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    birthday: e.target.value,
+                  }))
+                }
+              />
+              {errors.birthday && (
+                <p className="text-sm text-[#f95630]">{errors.birthday}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ig" className="text-base text-[#2c2f30]">
+                IG 帳號
+              </Label>
+              <Input
+                id="ig"
+                placeholder="@username"
+                className="h-12 text-base"
+                value={formData.ig}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, ig: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+
+          {/* Section: 參賽狀態 - light panel */}
+          <div className="relative bg-[#ffffff] p-6 space-y-6 shadow-[0_0_20px_rgba(84,227,252,0.08)]">
+            <p className="font-pixel text-sm text-[#006573] tracking-wider">
+              參賽狀態
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="isFirstTime"
+                  className="mt-0.5"
+                  checked={formData.isFirstTime}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      isFirstTime: checked === true,
+                    }))
+                  }
+                />
+                <Label htmlFor="isFirstTime" className="text-base cursor-pointer leading-snug text-[#2c2f30]">
+                  初次參賽者
+                  <span className="block text-sm text-[#595c5d]">(第一次報名需上傳大頭貼)</span>
+                </Label>
+              </div>
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="isGraduating"
+                  className="mt-0.5"
+                  checked={formData.isGraduating}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      isGraduating: checked === true,
+                    }))
+                  }
+                />
+                <Label htmlFor="isGraduating" className="text-base cursor-pointer leading-snug text-[#2c2f30]">
+                  應屆畢業生
+                  <span className="block text-sm text-[#595c5d]">(已取得畢業證書者需上傳畢業證書)</span>
+                </Label>
+              </div>
+            </div>
+
+            {formData.isFirstTime && (
+              <FileUpload
+                label="大頭貼"
+                hint="初次參賽者請上傳大頭貼"
+                accept="image/*"
+                required
+                error={errors.photo}
+                onChange={(file) => {
+                  setPhotoFile(file);
+                  setErrors((prev) => ({ ...prev, photo: undefined }));
+                }}
+              />
             )}
+
+            {formData.isGraduating && (
+              <FileUpload
+                label="畢業證書"
+                hint="尚未取得畢業證書，可以之後再補交"
+                accept="image/*,.pdf"
+                onChange={setDiplomaFile}
+              />
+            )}
+          </div>
+
+          {/* Section: 個資同意書 - light panel */}
+          <div className="relative bg-[#ffffff] p-6 space-y-8 shadow-[0_0_20px_rgba(255,143,169,0.08)]">
+            <p className="font-pixel text-sm text-[#b60051] tracking-wider">
+              個人資料告知事項暨同意書
+            </p>
+
+            <div className="space-y-4">
+              <PdfViewer url={CONSENT_PDF_URL} />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-base text-[#2c2f30]">簽名<span className="text-[#f95630] ml-1">*</span></Label>
+              <p className="text-sm font-bold text-[#f95630] bg-[#f95630]/10 px-3 py-2 border-l-4 border-l-[#f95630]">
+                請在下方框內簽名，並於簽名時一併寫上日期
+              </p>
+              <SignaturePad
+                ref={signaturePadRef}
+                onChange={() =>
+                  setErrors((prev) => ({ ...prev, signature: undefined }))
+                }
+              />
+              {errors.signature && (
+                <p className="text-sm text-[#f95630]">{errors.signature}</p>
+              )}
+            </div>
           </div>
 
           {submitStatus === "error" && (
@@ -271,20 +284,42 @@ function App() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-12 text-base"
+            className="w-full h-14 text-base font-bold uppercase tracking-[0.05em]"
             disabled={submitStatus === "submitting"}
           >
             {submitStatus === "submitting" ? "提交中..." : "送出報名"}
           </Button>
         </form>
+
+        {/* Bottom arcade decoration */}
+        <div className="flex justify-center items-center gap-5 mt-10">
+          <Ghost size={25} color="#ff8fa9" />
+          <Ghost size={25} color="#54e3fc" />
+          <Cherry size={25} />
+          <Ghost size={25} color="#ffd709" />
+          <Ghost size={25} color="#f95630" />
+        </div>
       </div>
 
       {submitStatus === "submitting" && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            <p className="text-lg font-medium">正在提交報名資料...</p>
-            <p className="text-sm text-muted-foreground">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#131313]/90 backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-6 bg-[#1b1b1b] p-10 border border-[#ffd709]/20 shadow-[0_0_40px_rgba(255,215,9,0.1)]">
+            {/* Pac-Man eating dots animation */}
+            <div className="relative h-20 w-[160px]">
+              <div className="pacman-runner absolute left-0 top-1/2 -translate-y-1/2">
+                <PacMan size={28} />
+              </div>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-[14px] pl-[30px]">
+                <Dot size={8} className="loading-dot" />
+                <Dot size={8} className="loading-dot" />
+                <Dot size={8} className="loading-dot" />
+                <Dot size={8} className="loading-dot" />
+                <Dot size={8} className="loading-dot" />
+                <Dot size={8} className="loading-dot" />
+              </div>
+            </div>
+            <p className="font-pixel text-xs text-[#ffd709]">LOADING</p>
+            <p className="text-sm text-[#abadae]">
               請勿關閉此頁面
             </p>
           </div>

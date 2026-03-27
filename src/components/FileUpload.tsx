@@ -53,11 +53,11 @@ export function FileUpload({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-base">
+      <Label htmlFor={id} className="text-base text-[#2c2f30]">
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && <span className="text-[#f95630] ml-1">*</span>}
       </Label>
-      {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-sm text-[#595c5d]">{hint}</p>}
 
       <input
         ref={inputRef}
@@ -73,7 +73,7 @@ export function FileUpload({
           <img
             src={preview}
             alt="Preview"
-            className="w-32 h-32 object-cover rounded-lg border"
+            className="w-32 h-32 object-cover border-2 border-[#abadae]"
           />
           <Button
             type="button"
@@ -86,7 +86,7 @@ export function FileUpload({
         </div>
       ) : fileName ? (
         <div className="flex items-center gap-2">
-          <span className="text-sm truncate max-w-[200px]">{fileName}</span>
+          <span className="text-sm truncate max-w-[200px] text-[#2c2f30]">{fileName}</span>
           <Button
             type="button"
             variant="outline"
@@ -107,7 +107,7 @@ export function FileUpload({
         </Button>
       )}
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-[#f95630]">{error}</p>}
     </div>
   );
 }

@@ -61,17 +61,17 @@ export function PdfViewer({ url }: PdfViewerProps) {
   }, [url]);
 
   if (error) {
-    return <p className="text-sm text-destructive">{error}</p>;
+    return <p className="text-sm text-[#f95630]">{error}</p>;
   }
 
   return (
     <div>
       <div
         ref={containerRef}
-        className="border rounded-lg overflow-hidden space-y-2 bg-white"
+        className="overflow-hidden space-y-2 bg-[#ffffff]"
       />
       {pageCount > 0 && (
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-[#595c5d] mt-1">
           共 {pageCount} 頁
         </p>
       )}

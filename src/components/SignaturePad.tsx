@@ -50,7 +50,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       <div className="space-y-2">
         <div
           ref={containerRef}
-          className="border rounded-lg overflow-hidden bg-white"
+          className="border-2 border-[#abadae] overflow-hidden bg-[#ffffff]"
         >
           <SignatureCanvas
             ref={canvasRef}
@@ -64,9 +64,6 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            請在上方框內簽名
-          </p>
           <Button
             type="button"
             variant="ghost"
