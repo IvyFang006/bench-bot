@@ -91,44 +91,13 @@ export function Cherry({ size = 24, className }: IconProps) {
 }
 
 export function Basketball({ size = 24, className }: IconProps) {
-  // 14x14 pixel basketball - clean with gentle curves near center
-  const _ = 0, X = 1, H = 2, A = 3, B = 4, C = 5, S = 6;
-  const rows = [
-    [ _, _, _, _, X, X, X, X, X, X, _, _, _, _ ],
-    [ _, _, X, X, H, H, H, S, A, A, X, X, _, _ ],
-    [ _, X, H, H, H, H, A, S, A, A, A, A, X, _ ],
-    [ X, H, H, H, A, A, A, S, A, A, A, A, B, X ],
-    [ X, H, H, A, A, A, A, S, A, A, A, B, B, X ],
-    [ X, H, A, A, A, S, A, S, A, S, B, B, B, X ],
-    [ X, A, A, A, S, A, A, S, A, A, S, B, C, X ],
-    [ S, S, S, S, S, S, S, S, S, S, S, S, S, S ],
-    [ X, A, A, A, S, A, A, S, A, A, S, C, C, X ],
-    [ X, A, A, A, A, S, A, S, A, S, C, C, C, X ],
-    [ X, B, B, A, A, A, A, S, A, A, A, C, C, X ],
-    [ X, B, B, B, A, A, A, S, A, A, C, C, C, X ],
-    [ _, X, B, B, B, B, A, S, C, C, C, C, X, _ ],
-    [ _, _, X, X, C, C, C, S, C, C, X, X, _, _ ],
-  ];
-
-  const colors: Record<number, string> = {
-    [X]: "#1a1a1a",
-    [H]: "#fe8b38",
-    [A]: "#f05a11",
-    [B]: "#d24b0e",
-    [C]: "#a33c0a",
-    [S]: "#331a08",
-  };
-
-  const rects = rows.flatMap((row, y) =>
-    row.map((v, x) => {
-      if (v === 0) return null;
-      return <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={colors[v]} />;
-    })
-  );
-
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" className={className} fill="transparent">
-      {rects}
+    <svg width={size} height={size} viewBox="0 0 64 64" className={className} fill="none">
+      <circle cx="32" cy="32" r="30" fill="#f97316" stroke="#ea580c" strokeWidth="2" />
+      <path d="M32 2 C32 2 32 62 32 62" stroke="#c2410c" strokeWidth="1.8" fill="none" />
+      <path d="M2 32 C2 32 62 32 62 32" stroke="#c2410c" strokeWidth="1.8" fill="none" />
+      <path d="M8 10 C22 22 22 42 8 54" stroke="#c2410c" strokeWidth="1.8" fill="none" />
+      <path d="M56 10 C42 22 42 42 56 54" stroke="#c2410c" strokeWidth="1.8" fill="none" />
     </svg>
   );
 }
