@@ -25,7 +25,6 @@ interface FormErrors {
   name?: string;
   birthday?: string;
   signature?: string;
-  photo?: string;
 }
 
 function App() {
@@ -51,9 +50,6 @@ function App() {
     }
     if (!formData.birthday) {
       newErrors.birthday = "請選擇出生年月日";
-    }
-    if (formData.isFirstTime && !photoFile) {
-      newErrors.photo = "初次參賽者需上傳大頭貼";
     }
     if (signaturePadRef.current?.isEmpty()) {
       newErrors.signature = "請簽名";
@@ -202,7 +198,6 @@ function App() {
                 />
                 <Label htmlFor="isFirstTime" className="text-base cursor-pointer leading-snug text-[#2c2f30]">
                   初次參賽者
-                  <span className="block text-sm text-[#595c5d]">(第一次報名需上傳大頭貼)</span>
                 </Label>
               </div>
               <div className="flex items-start space-x-3">
@@ -219,33 +214,29 @@ function App() {
                 />
                 <Label htmlFor="isGraduating" className="text-base cursor-pointer leading-snug text-[#2c2f30]">
                   應屆畢業生
-                  <span className="block text-sm text-[#595c5d]">(已取得畢業證書者需上傳畢業證書)</span>
                 </Label>
               </div>
             </div>
 
-            {formData.isFirstTime && (
-              <FileUpload
-                label="大頭貼"
-                hint="初次參賽者請上傳大頭貼"
-                accept="image/*"
-                required
-                error={errors.photo}
-                onChange={(file) => {
-                  setPhotoFile(file);
-                  setErrors((prev) => ({ ...prev, photo: undefined }));
-                }}
-              />
-            )}
+          </div>
 
-            {formData.isGraduating && (
-              <FileUpload
-                label="畢業證書"
-                hint="尚未取得畢業證書，可以之後再補交"
-                accept="image/*,.pdf"
-                onChange={setDiplomaFile}
-              />
-            )}
+          {/* Section: 上傳資料 - light panel */}
+          <div className="relative bg-[#ffffff] p-6 space-y-6 shadow-[0_0_20px_rgba(255,215,9,0.08)]">
+            <p className="font-pixel text-sm text-[#6c5a00] tracking-wider">
+              上傳資料
+            </p>
+
+            <FileUpload
+              label="大頭貼"
+              accept="image/*"
+              onChange={setPhotoFile}
+            />
+
+            <FileUpload
+              label="畢業證書"
+              accept="image/*,.pdf"
+              onChange={setDiplomaFile}
+            />
           </div>
 
           {/* Section: 個資同意書 - light panel */}
