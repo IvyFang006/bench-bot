@@ -15,7 +15,9 @@ const CONSENT_PDF_URL = `${import.meta.env.BASE_URL}consent-form.pdf`;
 
 interface FormData {
   name: string;
-  birthday: string;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
   ig: string;
   isFirstTime: boolean;
   isGraduating: boolean;
@@ -30,7 +32,9 @@ interface FormErrors {
 function App() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    birthday: "",
+    birthYear: "",
+    birthMonth: "",
+    birthDay: "",
     ig: "",
     isFirstTime: false,
     isGraduating: false,
@@ -48,8 +52,8 @@ function App() {
     if (!formData.name.trim()) {
       newErrors.name = "請輸入姓名";
     }
-    if (!formData.birthday) {
-      newErrors.birthday = "請選擇出生年月日";
+    if (!formData.birthYear || !formData.birthMonth || !formData.birthDay) {
+      newErrors.birthday = "請輸入完整的出生年月日";
     }
     if (signaturePadRef.current?.isEmpty()) {
       newErrors.signature = "請簽名";
@@ -67,10 +71,11 @@ function App() {
     setSubmitStatus("submitting");
 
     const signatureDataUrl = signaturePadRef.current!.toDataURL();
+    const birthday = `${formData.birthYear}/${formData.birthMonth.padStart(2, "0")}/${formData.birthDay.padStart(2, "0")}`;
 
     submitRegistration(
       formData.name,
-      formData.birthday,
+      birthday,
       formData.ig,
       formData.isFirstTime,
       formData.isGraduating,
@@ -141,21 +146,58 @@ function App() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="birthday" className="text-base text-[#2c2f30]">
+              <Label className="text-base text-[#2c2f30]">
                 生日<span className="text-[#f95630] ml-1">*</span>
               </Label>
-              <Input
-                id="birthday"
-                type="date"
-                className="h-12 text-base"
-                value={formData.birthday}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    birthday: e.target.value,
-                  }))
-                }
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  id="birthYear"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="1990"
+                  maxLength={4}
+                  className="h-12 text-base text-center"
+                  value={formData.birthYear}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      birthYear: e.target.value.replace(/\D/g, ""),
+                    }))
+                  }
+                />
+                <span className="text-[#595c5d]">/</span>
+                <Input
+                  id="birthMonth"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="01"
+                  maxLength={2}
+                  className="h-12 text-base text-center"
+                  value={formData.birthMonth}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      birthMonth: e.target.value.replace(/\D/g, ""),
+                    }))
+                  }
+                />
+                <span className="text-[#595c5d]">/</span>
+                <Input
+                  id="birthDay"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="01"
+                  maxLength={2}
+                  className="h-12 text-base text-center"
+                  value={formData.birthDay}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      birthDay: e.target.value.replace(/\D/g, ""),
+                    }))
+                  }
+                />
+              </div>
               {errors.birthday && (
                 <p className="text-sm text-[#f95630]">{errors.birthday}</p>
               )}
