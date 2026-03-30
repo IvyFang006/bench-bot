@@ -34,10 +34,11 @@ export function PdfViewer({ url }: PdfViewerProps) {
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d")!;
 
-          // Scale to fit container width
+          // Scale to fit container width, accounting for high-DPI displays
           const containerWidth = container!.clientWidth;
+          const dpr = window.devicePixelRatio || 1;
           const unscaledViewport = page.getViewport({ scale: 1 });
-          const scale = containerWidth / unscaledViewport.width;
+          const scale = (containerWidth / unscaledViewport.width) * dpr;
           const viewport = page.getViewport({ scale });
 
           canvas.width = viewport.width;
